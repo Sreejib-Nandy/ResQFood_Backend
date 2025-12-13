@@ -1,7 +1,7 @@
 import express from "express";
 import { protect } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/upload.js";
-import { updateProfile } from "../controllers/userController.js";
+import { deleteProfile, updateProfile } from "../controllers/userController.js";
 
 const router = express.Router();
 

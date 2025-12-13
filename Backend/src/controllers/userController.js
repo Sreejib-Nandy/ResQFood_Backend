@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import axios from "axios";
+import cloudinary from "../config/cloudinary.js";
 
 // Update profile and optionally single avatar upload (req.file)
 export const updateProfile = async(req, res) => {
@@ -58,5 +59,37 @@ export const updateProfile = async(req, res) => {
 
   } catch (error) {
     res.status(500).json({ success : false, message : error.message });
+  }
+};
+
+
+export const deleteProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Delete avatar from Cloudinary if exists
+    if (user.avatar?.public_id) {
+      await cloudinary.uploader.destroy(user.avatar.public_id);
+    }
+
+    // Delete user from DB
+    await user.deleteOne();
+
+    // Clear auth cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    });
+
+    res.json({ success: true, message: "Account deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

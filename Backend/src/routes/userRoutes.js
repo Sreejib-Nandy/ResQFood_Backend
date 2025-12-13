@@ -7,6 +7,7 @@ const router = express.Router();
 
 // update profile & optional avatar upload (field 'avatar')
 router.patch("/me", protect, upload.single("avatar"), updateProfile);
+router.delete("/me", protect, deleteProfile);
 
 // get current user (you can add more routes)
 router.get("/me", protect, (req, res) => {

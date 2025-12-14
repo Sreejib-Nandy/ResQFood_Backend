@@ -11,25 +11,33 @@ import { sendSMS } from "../utils/twilio.js";
 import User from "../models/User.js";
 
 const geocodeAddress = async (address) => {
-  if(!address) return null;
+  if (!address) return null;
   const token = process.env.MAPBOX_ACCESS_TOKEN;
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${token}&limit=1`;
   const res = await axios.get(url);
   const feat = res.data.features?.[0];
   if (!feat) return null;
   const [lng, lat] = feat.geometry.coordinates;
-  return { type : "Point", coordinates : [lng, lat] };
+  return { type: "Point", coordinates: [lng, lat] };
 };
 
 // Create a new food post
 export const createFood = async (req, res) => {
   try {
     const { food_name, quantity, description, expiry_time, address } = req.body;
-    const files = req.files;
-    if (!files || files.length === 0) {
-      return res.status(400).json({ success: false, message: "At least one image is required" });
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: "Food image is required",
+      });
     }
-    const images = files.map(f => ({ url : f.path, public_id : f.filename }));
+    const images = [
+      {
+        url: file.path,
+        public_id: file.filename,
+      },
+    ];
 
     let geoPoint = null;
 
@@ -50,37 +58,60 @@ export const createFood = async (req, res) => {
     }
 
     if (!geoPoint) {
-        return res.status(400).json({ success : false, message : "Location required (address or restaurant profile location)" });
+      return res.status(400).json({ success: false, message: "Location required (address or restaurant profile location)" });
     }
 
-    if(!expiry_time){
-        return res.status(400).json({ success: false, message: "expiry_time is required" });
+    if (!expiry_time) {
+      return res.status(400).json({ success: false, message: "expiry_time is required" });
     }
 
     const post = await FoodPost.create({
-      restaurantId : req.user._id,
+      restaurantId: req.user._id,
       food_name,
       quantity,
       description,
-      expiry_time : expiry_time ? new Date(expiry_time) : null,
-      location : geoPoint,
-      food_images : images,
+      expiry_time: expiry_time ? new Date(expiry_time) : null,
+      location: geoPoint,
+      food_images: images,
     });
 
     const io = getIO();
     io?.emit("new_food_post", post);
 
-    res.status(201).json({success : true, message : "Notification sent", post});
+    res.status(201).json({ success: true, message: "Notification sent", post });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success : false, message : error.message });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get all foodposts from specific restaurant
+export const getFoodPostsByRestaurant = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+
+    const foodPosts = await FoodPost.find({ restaurantId })
+      .populate("restaurantId", "name address contactInfo")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: foodPosts.length,
+      data: foodPosts,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch food posts",
+    });
   }
 };
 
 // Get all the food post from different restaurants
 export const getAllFood = async (req, res) => {
-  const posts = await FoodPost.find({ status : "available" }).sort({ createdAt: -1 });
-  res.status(201).json({success : true, posts});
+  const posts = await FoodPost.find({ status: "available" }).sort({ createdAt: -1 });
+  res.status(201).json({ success: true, posts });
 };
 
 // Claimed food by any NGO
@@ -88,10 +119,10 @@ export const claimFood = async (req, res) => {
   try {
     const post = await FoodPost.findById(req.params.id);
     if (!post) {
-        return res.status(404).json({ success : false, message : "Not found" });
+      return res.status(404).json({ success: false, message: "Not found" });
     }
     if (post.status !== "available") {
-        return res.status(400).json({ success : false, message : "Not available" });
+      return res.status(400).json({ success: false, message: "Not available" });
     }
 
     post.status = "claimed";
@@ -112,9 +143,9 @@ export const claimFood = async (req, res) => {
     const io = getIO();
     io?.emit("food_claimed", post);
 
-    res.json({success : true, post});
+    res.json({ success: true, post });
   } catch (error) {
-    res.status(500).json({ success : false, message : error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -125,26 +156,26 @@ export const getNearbyFoods = async (req, res) => {
     radius_km = parseFloat(radius_km || "5");
 
     // use user's saved location if not provided
-      if (!req.user || !req.user.location?.coordinates) {
-        return res.status(400).json({ success : false, message : "Provide coordinates or set user profile location" });
-      }
-      const [lng, lat] = req.user.location.coordinates;
-    
+    if (!req.user || !req.user.location?.coordinates) {
+      return res.status(400).json({ success: false, message: "Provide coordinates or set user profile location" });
+    }
+    const [lng, lat] = req.user.location.coordinates;
+
     const meters = radius_km * 1000;
 
     const foods = await FoodPost.find({
-      status : "available",
-      location : {
-        $near : {
-          $geometry : { type: "Point", coordinates : [parseFloat(lng), parseFloat(lat)] },
+      status: "available",
+      location: {
+        $near: {
+          $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
           $maxDistance: meters
         }
       }
     });
 
-    res.json({success : true, foods});
+    res.json({ success: true, foods });
   } catch (error) {
-    res.status(500).json({ success : false, message : error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -152,7 +183,7 @@ export const getNearbyFoods = async (req, res) => {
 // Mark as collected
 export const markCollected = async (req, res) => {
   try {
-    const { foodId } = req.params;
+    const { id: foodId } = req.params;
     const ngoId = req.user.id;
     const food = await FoodPost.findById(foodId);
 
@@ -176,8 +207,8 @@ export const markCollected = async (req, res) => {
     const io = getIO();
     io.emit("foodCollected", { foodId });
 
-    res.json({ success : true, message : "Food marked as collected" });
+    res.json({ success: true, message: "Food marked as collected" });
   } catch (error) {
-    res.status(500).json({ success : false, message : error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

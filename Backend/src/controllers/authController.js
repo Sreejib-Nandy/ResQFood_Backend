@@ -5,7 +5,7 @@ import validator from "validator";
 import axios from "axios";
 
 // Generate a authToken for new users
-const signToken = (user) => jwt.sign({ id : user._id, role : user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+const signToken = (user) => jwt.sign({ id : user._id, role : user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
 // helper to geocode address using Mapbox (if address provided)
 const geocodeAddress = async(address) => {
@@ -97,7 +97,7 @@ export const login = async(req, res) => {
             httpOnly : true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 7 * 24 * 60 * 60 * 1000
         })
 
         res.json({ success : true, message : "Logged in successfully", user : { id : user._id, role : user.role, name : user.name } });

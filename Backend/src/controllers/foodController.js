@@ -78,7 +78,7 @@ export const createFood = async (req, res) => {
     const io = getIO();
     io?.emit("new_food_post", post);
 
-    res.status(201).json({ success: true, message: "Notification sent", post });
+    res.status(200).json({ success: true, message: "Notification sent", post });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
@@ -111,7 +111,7 @@ export const getFoodPostsByRestaurant = async (req, res) => {
 // Get all the food post from different restaurants
 export const getAllFood = async (req, res) => {
   const posts = await FoodPost.find({ status: "available" }).sort({ createdAt: -1 });
-  res.status(201).json({ success: true, posts });
+  res.status(200).json({ success: true, posts });
 };
 
 // Claimed food by any NGO

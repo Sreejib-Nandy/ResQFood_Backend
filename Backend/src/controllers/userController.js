@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import axios from "axios";
 import cloudinary from "../config/cloudinary.js";
+import foodPost from "../models/foodPost.js";
 
 // Update profile and optionally single avatar upload (req.file)
 export const updateProfile = async(req, res) => {
@@ -65,21 +66,36 @@ export const updateProfile = async(req, res) => {
 
 export const deleteProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const userId = req.user._id;
 
+    const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    // Delete avatar from Cloudinary if exists
+    const foodPosts = await foodPost.find({ restaurantId: userId });
+
+    for (const post of foodPosts) {
+      if (post.food_image?.length) {
+        for (const img of post.food_image) {
+          if (img.public_id) {
+            await cloudinary.uploader.destroy(img.public_id);
+          }
+        }
+      }
+    }
+
+    await foodPost.deleteMany({ restaurantId: userId });
+
     if (user.avatar?.public_id) {
       await cloudinary.uploader.destroy(user.avatar.public_id);
     }
 
-    // Delete user from DB
     await user.deleteOne();
 
-    // Clear auth cookie
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -87,9 +103,16 @@ export const deleteProfile = async (req, res) => {
       path: "/",
     });
 
-    res.json({ success: true, message: "Account deleted successfully" });
+    res.status(200).json({
+      success: true,
+      message: "Account deleted permanently",
+    });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

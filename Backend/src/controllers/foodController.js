@@ -27,7 +27,7 @@ export const createFood = async (req, res) => {
     const { food_name, quantity, description, expiry_time, address } = req.body;
     const file = req.file;
     if (!file) {
-      return res.status(400).json({
+      return res.status(200).json({
         success: false,
         message: "Food image is required",
       });
@@ -58,11 +58,11 @@ export const createFood = async (req, res) => {
     }
 
     if (!geoPoint) {
-      return res.status(400).json({ success: false, message: "Location required (address or restaurant profile location)" });
+      return res.status(200).json({ success: false, message: "Location required (address or restaurant profile location)" });
     }
 
     if (!expiry_time) {
-      return res.status(400).json({ success: false, message: "expiry_time is required" });
+      return res.status(200).json({ success: false, message: "expiry_time is required" });
     }
 
     const post = await FoodPost.create({

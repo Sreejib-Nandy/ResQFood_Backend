@@ -13,7 +13,7 @@ const foodPostSchema = new mongoose.Schema({
     status : { type : String, enum : ["available","claimed","collected","expired"], default : "available" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     claimedBy : { type : mongoose.Schema.Types.ObjectId, ref: "User", default: null },
-    food_images : [
+    food_image : [
     {
       url : String,
       public_id : String

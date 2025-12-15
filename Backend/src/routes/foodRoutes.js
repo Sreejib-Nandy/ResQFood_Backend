@@ -25,7 +25,7 @@ router.put("/food/:id", protect, verifyRestaurantOwnership, async (req, res) => 
     "description",
     "expiry_time",
     "location",
-    "food_images"
+    "food_image"
   ];
 
   allowedUpdates.forEach((field) => {

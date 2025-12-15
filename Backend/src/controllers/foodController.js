@@ -72,7 +72,7 @@ export const createFood = async (req, res) => {
       description,
       expiry_time: expiry_time ? new Date(expiry_time) : null,
       location: geoPoint,
-      food_images: images,
+      food_image: images,
     });
 
     const io = getIO();

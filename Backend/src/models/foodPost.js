@@ -21,6 +21,7 @@ const foodPostSchema = new mongoose.Schema({
   ],
     claimedAt: Date,
     collectedAt : Date,
+    expiredAt: {type: Date,default: null},
 }, { timestamps: true });
 
 foodPostSchema.index({ location : "2dsphere"});

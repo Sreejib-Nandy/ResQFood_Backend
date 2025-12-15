@@ -2,20 +2,48 @@ import cron from "node-cron";
 import FoodPost from "../models/foodPost.js";
 import { getIO } from "../socket/socketHandler.js";
 
-// Check after 10 minutes ---> Cron Job schedule
+// Expire food every 5 minutes
 cron.schedule("*/5 * * * *", async () => {
   try {
     const now = new Date();
-    const res = await FoodPost.updateMany({ expiry_time: { $lt: now }, status : "available" }, { status : "expired" });
-    if (res.modifiedCount > 0) {
-      console.log("🕒 Auto-expired posts:", res.modifiedCount);
-      try {
-        getIO()?.emit("food_expired", { count: res.modifiedCount });
-      } catch (err) {
-        console.warn("Socket.io not initialized yet :", err.message);
+
+    const expiredPosts = await FoodPost.find({
+      expiry_time: { $lt: now },
+      status: "available",
+    }).select("_id");
+
+    if (!expiredPosts.length) return;
+
+    await FoodPost.updateMany(
+      { _id: { $in: expiredPosts.map(p => p._id) } },
+      {
+        status: "expired",
+        expiredAt: new Date(),
       }
+    );
+
+    console.log("Auto-expired posts:", expiredPosts.length);
+
+    try {
+      getIO()?.emit("food_expired", {
+        ids: expiredPosts.map(p => p._id.toString()),
+      });
+    } catch (err) {
+      console.warn("Socket.io not initialized yet:", err.message);
     }
   } catch (error) {
-    console.error("Cron error :", error);
+    console.error("Cron error:", error);
+  }
+});
+
+// 🧹 Cleanup expired posts after 7 days
+cron.schedule("0 3 * * *", async () => {
+  const res = await FoodPost.deleteMany({
+    status: "expired",
+    expiredAt: { $lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+  });
+
+  if (res.deletedCount > 0) {
+    console.log("Cleaned expired posts:", res.deletedCount);
   }
 });

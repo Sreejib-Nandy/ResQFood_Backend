@@ -147,7 +147,7 @@ export const claimFood = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-};
+};  
 
 // Get food within radius (km) from given coords. If no coords passed, uses user's saved location
 export const getNearbyFoods = async (req, res) => {

@@ -1,6 +1,6 @@
 let ioInstance = null;
 
-// Sockety.io connection
+// Socket.io connection
 export const initSocket = (io) => {
   ioInstance = io;
   io.on("connection", (socket) => {

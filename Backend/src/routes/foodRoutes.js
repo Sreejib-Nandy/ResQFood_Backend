@@ -10,7 +10,7 @@ router.get("/", getAllFood);
 router.get("/restaurant/:restaurantId", protect, getFoodPostsByRestaurant);
 router.get("/nearby", protect, getNearbyFoods); // requires coordinates in query or user profile
 // Create food post
-router.post("/createfood", protect, authorizeRoles("restaurant"), upload.single("food_image"), createFood);
+router.post("/createfood", upload.single("food_image"),protect, authorizeRoles("restaurant"), createFood);
 // Claimed food post
 router.patch("/:id/claim", protect, authorizeRoles("ngo"), claimFood);
 // Collected food 

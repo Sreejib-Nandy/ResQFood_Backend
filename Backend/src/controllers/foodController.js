@@ -149,19 +149,19 @@ export const claimFood = async (req, res) => {
         ngo.contactInfo,
         `🍽️ Food Claimed Successfully!
 
-Food: "${post.food_name}"
-Quantity: "${post.quantity}"
+        Food: "${post.food_name}"
+        Quantity: "${post.quantity}"
 
-Expiry time:
-${new Date(post.expiry_time).toLocaleString()}
-
-Location:
-https://www.google.com/maps?q=${post.location.coordinates[1]},${post.location.coordinates[0]}
-
-Restaurant: ${restaurant.name}
-
-Please collect the food before it expires.
-Thank you for helping reduce food waste and fight hunger 💚`
+        Expiry time:
+        ${new Date(post.expiry_time).toLocaleString()}
+              
+        Location:
+        https://www.google.com/maps?q=${post.location.coordinates[1]},${post.location.coordinates[0]}
+              
+        Restaurant: ${restaurant.name}
+              
+        Please collect the food before it expires.
+        Thank you for helping reduce food waste and fight hunger 💚`
       );
     }
 

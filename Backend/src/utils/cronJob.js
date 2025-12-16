@@ -36,7 +36,7 @@ cron.schedule("*/5 * * * *", async () => {
   }
 });
 
-// 🧹 Cleanup expired posts after 7 days
+// Cleanup expired posts after 7 days
 cron.schedule("0 3 * * *", async () => {
   const res = await FoodPost.deleteMany({
     status: "expired",

@@ -246,7 +246,7 @@ export const markCollected = async (req, res) => {
 
 export const getClaimedFoodsByNGO = async (req, res) => {
   try {
-    const ngoId = req.params;
+    const ngoId = req.user._id;
 
     const foods = await FoodPost.find({
       claimedBy: ngoId,

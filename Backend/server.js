@@ -6,7 +6,7 @@ import app from "./src/app.js";
 import connectDB from "./src/config/database.js";
 import { Server } from "socket.io";
 import { initSocket } from "./src/socket/socketHandler.js";
-// import "./src/utils/cronJob.js";
+import "./src/utils/cronJob.js";
 
 // Call the function to connect database
 connectDB();

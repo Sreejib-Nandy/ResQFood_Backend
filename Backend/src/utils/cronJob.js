@@ -3,7 +3,7 @@ import FoodPost from "../models/foodPost.js";
 import { getIO } from "../socket/socketHandler.js";
 
 // Expire food every 5 minutes
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/2 * * * *", async () => {
   try {
     const now = new Date();
 

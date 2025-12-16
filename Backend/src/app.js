@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import foodRoutes from "./routes/foodRoutes.js";
+import cronRoutes from "./routes/cronRoutes.js";
 
 // Create an express app
 const app = express();
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/food", foodRoutes);
+app.use("/api/cron", cronRoutes);
 
 // Throw a response 
 app.get('/', (req, res) => {

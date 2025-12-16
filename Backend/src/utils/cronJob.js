@@ -1,37 +1,37 @@
-import cron from "node-cron";
-import FoodPost from "../models/foodPost.js";
-import { getIO } from "../socket/socketHandler.js";
+// import cron from "node-cron";
+// import FoodPost from "../models/foodPost.js";
+// import { getIO } from "../socket/socketHandler.js";
 
-// Expire food every 2 minutes
-cron.schedule("*/2 * * * *", async () => {
-  try {
-    const now = new Date();
+// // Expire food every 2 minutes
+// cron.schedule("*/2 * * * *", async () => {
+//   try {
+//     const now = new Date();
 
-    const expiredPosts = await FoodPost.find({
-      expiry_time: { $lte: now },
-      status: { $in: ["available", "claimed"] },
-    }).select("_id");
+//     const expiredPosts = await FoodPost.find({
+//       expiry_time: { $lte: now },
+//       status: { $in: ["available", "claimed"] },
+//     }).select("_id");
 
-    if (!expiredPosts.length) return;
+//     if (!expiredPosts.length) return;
 
-    await FoodPost.updateMany(
-      { _id: { $in: expiredPosts.map(p => p._id) } },
-      {
-        status: "expired",
-        expiredAt: now,
-      }
-    );
+//     await FoodPost.updateMany(
+//       { _id: { $in: expiredPosts.map(p => p._id) } },
+//       {
+//         status: "expired",
+//         expiredAt: now,
+//       }
+//     );
 
-    console.log("Auto-expired posts:", expiredPosts.length);
+//     console.log("Auto-expired posts:", expiredPosts.length);
 
-    getIO()?.emit("food_expired", {
-      ids: expiredPosts.map(p => p._id.toString()),
-    });
+//     getIO()?.emit("food_expired", {
+//       ids: expiredPosts.map(p => p._id.toString()),
+//     });
 
-  } catch (error) {
-    console.error("Cron error:", error);
-  }
-});
+//   } catch (error) {
+//     console.error("Cron error:", error);
+//   }
+// });
 
 
 // Cleanup expired posts after 7 days

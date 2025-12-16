@@ -3,6 +3,7 @@ import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
 import { verifyRestaurantOwnership } from "../middlewares/foodMiddleware.js";
 import upload from "../middlewares/upload.js";
 import { createFood, getAllFood, claimFood, getNearbyFoods, markCollected, getFoodPostsByRestaurant, getClaimedFoodsByNGO} from "../controllers/foodController.js";
+import { getIO } from "../socket/socketHandler.js";
 
 const router = express.Router();
 
@@ -35,12 +36,21 @@ router.put("/food/:id", protect, verifyRestaurantOwnership, async (req, res) => 
     }
   });
   await req.food.save();
+
+  const io = getIO();
+  io?.emit("post_updated", req.food);
+
   res.json({ success: true, message: "Food updated", food: req.food });
 });
 
 // Delete food post
 router.delete("/food/:id", protect, verifyRestaurantOwnership, async (req, res) => {
+  const foodId = req.food._id;
   await req.food.deleteOne();
+
+  const io = getIO();
+  io?.emit("post_deleted", foodId);
+
   res.json({ success: true, message: "Food post deleted" });
 });
 

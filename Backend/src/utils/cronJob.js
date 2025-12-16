@@ -9,7 +9,6 @@ cron.schedule("*/5 * * * *", async () => {
 
     const expiredPosts = await FoodPost.find({
       expiry_time: { $lt: now },
-      status: "available",
     }).select("_id");
 
     if (!expiredPosts.length) return;

@@ -250,14 +250,20 @@ export const getClaimedFoodsByNGO = async (req, res) => {
 
     const foods = await FoodPost.find({
       claimedBy: ngoId,
-      status: "claimed",
-    }).populate("restaurantId", "name address");
+      status: { $in: ["claimed", "collected"] },
+    })
+      .populate("restaurantId", "name address")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,
+      count: foods.length,
       data: foods,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

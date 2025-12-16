@@ -3,6 +3,7 @@ import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
 import { verifyRestaurantOwnership } from "../middlewares/foodMiddleware.js";
 import upload from "../middlewares/upload.js";
 import { createFood, getAllFood, claimFood, getNearbyFoods, markCollected, getFoodPostsByRestaurant, getClaimedFoodsByNGO} from "../controllers/foodController.js";
+import cloudinary from "../utils/cloudinary.js";
 import { getIO } from "../socket/socketHandler.js";
 
 const router = express.Router();
@@ -17,10 +18,6 @@ router.patch("/:id/claim", protect, authorizeRoles("ngo"), claimFood);
 router.get("/claimed",protect,authorizeRoles("ngo"),getClaimedFoodsByNGO);
 // Collected food 
 router.patch("/:id/collected", protect, authorizeRoles("ngo"), markCollected);
-
-// Update food post
-import upload from "../middlewares/upload.js";
-import cloudinary from "../utils/cloudinary.js";
 
 router.put(
   "/food/:id",

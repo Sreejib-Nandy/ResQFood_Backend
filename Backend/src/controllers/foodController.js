@@ -166,7 +166,13 @@ export const claimFood = async (req, res) => {
     }
 
     const io = getIO();
-    io?.emit("food_claimed", post);
+    io.to(post.restaurantId.toString()).emit("food_claimed_owner", {
+      foodId: post._id,
+    });
+
+    io.emit("food_unavailable", {
+      foodId: post._id,
+    });
 
     res.json({ success: true, post });
   } catch (error) {
@@ -236,7 +242,13 @@ export const markCollected = async (req, res) => {
     }
 
     const io = getIO();
-    io.emit("foodCollected", { foodId });
+    io.to(food.restaurantId.toString()).emit("food_collected_owner", {
+      foodId
+    });
+
+    io.emit("food_unavailable", {
+      foodId: food._id,
+    });
 
     res.json({ success: true, message: "Food marked as collected" });
   } catch (error) {

@@ -19,29 +19,71 @@ router.get("/claimed",protect,authorizeRoles("ngo"),getClaimedFoodsByNGO);
 router.patch("/:id/collected", protect, authorizeRoles("ngo"), markCollected);
 
 // Update food post
-router.put("/food/:id", protect, verifyRestaurantOwnership, async (req, res) => {
-  const updates = req.body;
-  const allowedUpdates = [
-    "food_name",
-    "quantity",
-    "description",
-    "expiry_time",
-    "location",
-    "food_image"
-  ];
+import upload from "../middlewares/upload.js";
+import cloudinary from "../utils/cloudinary.js";
 
-  allowedUpdates.forEach((field) => {
-    if (updates[field] !== undefined) {
-      req.food[field] = updates[field];
+router.put(
+  "/food/:id",
+  protect,
+  verifyRestaurantOwnership,
+  upload.single("food_image"),
+  async (req, res) => {
+    try {
+      const updates = req.body;
+
+      const allowedUpdates = [
+        "food_name",
+        "quantity",
+        "description",
+        "location",
+      ];
+
+      allowedUpdates.forEach((field) => {
+        if (updates[field] !== undefined) {
+          req.food[field] = updates[field];
+        }
+      });
+
+      if (updates.expiry_time) {
+        req.food.expiry_time = new Date(updates.expiry_time);
+      }
+
+      if (req.file) {
+        // delete old image from cloudinary
+        if (req.food.food_image?.[0]?.public_id) {
+          await cloudinary.uploader.destroy(
+            req.food.food_image[0].public_id
+          );
+        }
+
+        req.food.food_image = [
+          {
+            url: req.file.path,
+            public_id: req.file.filename,
+          },
+        ];
+      }
+
+      await req.food.save();
+
+      getIO()?.emit("post_updated", req.food);
+
+      res.json({
+        success: true,
+        message: "Food updated successfully",
+        food: req.food,
+      });
+
+    } catch (err) {
+      console.error("Update food error:", err);
+      res.status(500).json({
+        success: false,
+        message: err.message,
+      });
     }
-  });
-  await req.food.save();
+  }
+);
 
-  const io = getIO();
-  io?.emit("post_updated", req.food);
-
-  res.json({ success: true, message: "Food updated", food: req.food });
-});
 
 // Delete food post
 router.delete("/food/:id", protect, verifyRestaurantOwnership, async (req, res) => {

@@ -13,7 +13,7 @@ router.get("/nearby", protect, getNearbyFoods); // requires coordinates in query
 router.post("/createfood", upload.single("food_image"),protect, authorizeRoles("restaurant"), createFood);
 // Claimed food post
 router.patch("/:id/claim", protect, authorizeRoles("ngo"), claimFood);
-router.get("/claimed",protect,authorizeRoles("ngo"),getClaimedFoodsByNGO);
+router.get("/claimed/:ngoId",protect,authorizeRoles("ngo"),getClaimedFoodsByNGO);
 // Collected food 
 router.patch("/:id/collected", protect, authorizeRoles("ngo"), markCollected);
 

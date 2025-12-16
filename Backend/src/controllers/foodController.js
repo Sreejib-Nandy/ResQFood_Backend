@@ -154,12 +154,12 @@ export const claimFood = async (req, res) => {
 
         Expiry time:
         ${new Date(post.expiry_time).toLocaleString()}
-              
+
         Location:
         https://www.google.com/maps?q=${post.location.coordinates[1]},${post.location.coordinates[0]}
-              
+
         Restaurant: ${restaurant.name}
-              
+
         Please collect the food before it expires.
         Thank you for helping reduce food waste and fight hunger 💚`
       );
@@ -246,7 +246,7 @@ export const markCollected = async (req, res) => {
 
 export const getClaimedFoodsByNGO = async (req, res) => {
   try {
-    const ngoId = req.user._id;
+    const ngoId = req.params;
 
     const foods = await FoodPost.find({
       claimedBy: ngoId,

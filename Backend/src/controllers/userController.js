@@ -67,39 +67,49 @@ export const updateProfile = async(req, res) => {
 export const deleteProfile = async (req, res) => {
   try {
     const userId = req.user._id;
+    const role = req.user.role;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+    // NGO-specific cleanup
+    if (role === "ngo") {
+      await foodPost.updateMany(
+        { claimedBy: userId },
+        {
+          $set: {
+            claimedBy: null,
+            status: "available",
+            claimedAt: null,
+          },
+        }
+      );
     }
 
-    const foodPosts = await foodPost.find({ restaurantId: userId });
+    // Restaurant-specific cleanup
+    if (role === "restaurant") {
+      const foodPosts = await foodPost.find({ restaurantId: userId });
 
-    for (const post of foodPosts) {
-      if (post.food_image?.length) {
-        for (const img of post.food_image) {
+      for (const post of foodPosts) {
+        for (const img of post.food_image || []) {
           if (img.public_id) {
             await cloudinary.uploader.destroy(img.public_id);
           }
         }
       }
+
+      await foodPost.deleteMany({ restaurantId: userId });
     }
 
-    await foodPost.deleteMany({ restaurantId: userId });
-
-    if (user.avatar?.public_id) {
+    const user = await User.findById(userId);
+    if (user?.avatar?.public_id) {
       await cloudinary.uploader.destroy(user.avatar.public_id);
     }
 
-    await user.deleteOne();
+    // Delete user
+    await User.findByIdAndDelete(userId);
 
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
       path: "/",
     });
 
@@ -109,10 +119,6 @@ export const deleteProfile = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -2,7 +2,7 @@ import express from "express";
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
 import { verifyRestaurantOwnership } from "../middlewares/foodMiddleware.js";
 import upload from "../middlewares/upload.js";
-import { createFood, getAllFood, claimFood, getNearbyFoods, markCollected, getFoodPostsByRestaurant } from "../controllers/foodController.js";
+import { createFood, getAllFood, claimFood, getNearbyFoods, markCollected, getFoodPostsByRestaurant, getClaimedFoodsByNGO, unclaimFood } from "../controllers/foodController.js";
 
 const router = express.Router();
 
@@ -13,6 +13,7 @@ router.get("/nearby", protect, getNearbyFoods); // requires coordinates in query
 router.post("/createfood", upload.single("food_image"),protect, authorizeRoles("restaurant"), createFood);
 // Claimed food post
 router.patch("/:id/claim", protect, authorizeRoles("ngo"), claimFood);
+router.get("/claimed",protect,authorizeRoles("ngo"),getClaimedFoodsByNGO);
 // Collected food 
 router.patch("/:id/collected", protect, authorizeRoles("ngo"), markCollected);
 

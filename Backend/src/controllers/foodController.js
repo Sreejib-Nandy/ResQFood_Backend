@@ -110,8 +110,12 @@ export const getFoodPostsByRestaurant = async (req, res) => {
 
 // Get all the food post from different restaurants
 export const getAllFood = async (req, res) => {
-  const posts = await FoodPost.find({ status: "available" }).sort({ createdAt: -1 });
-  res.status(200).json({ success: true, posts });
+  try {
+    const posts = await FoodPost.find({ status: "available" }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, posts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // Claimed food by any NGO
@@ -132,11 +136,32 @@ export const claimFood = async (req, res) => {
 
     // Send SMS to restaurant
     const restaurant = await User.findById(post.restaurantId);
+    const ngo = await User.findById(req.user._id);
     if (restaurant?.contactInfo) {
       sendSMS(
         restaurant.contactInfo,
         `🌱 Great news! Your food donation "${post.food_name}" (Quantity: ${post.quantity}) has been claimed by ${req.user.name} from ${req.user.organization || "an NGO"}.\n\n` +
         `Thank you for helping reduce food waste and support people in need. Your generosity is making a difference! 🍽️`
+      );
+    }
+    if (ngo?.contactInfo) {
+      sendSMS(
+        ngo.contactInfo,
+        `🍽️ Food Claimed Successfully!
+
+Food: "${post.food_name}"
+Quantity: "${post.quantity}"
+
+Expiry time:
+${new Date(post.expiry_time).toLocaleString()}
+
+Location:
+https://www.google.com/maps?q=${post.location.coordinates[1]},${post.location.coordinates[0]}
+
+Restaurant: ${restaurant.name}
+
+Please collect the food before it expires.
+Thank you for helping reduce food waste and fight hunger 💚`
       );
     }
 
@@ -147,7 +172,7 @@ export const claimFood = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-};  
+};
 
 // Get food within radius (km) from given coords. If no coords passed, uses user's saved location
 export const getNearbyFoods = async (req, res) => {
@@ -186,9 +211,15 @@ export const markCollected = async (req, res) => {
     const { id: foodId } = req.params;
     const ngoId = req.user.id;
     const food = await FoodPost.findById(foodId);
+    if (!food) return res.status(404).json({ success: false, message: "Food not found" });
+    const restaurant = await User.findById(food.restaurantId);
 
-    if (food.claimedBy.toString() !== ngoId)
+    if (!food.claimedBy || food.claimedBy.toString() !== ngoId)
       return res.status(403).json({ error: "Unauthorized" });
+
+    if (food.status !== "claimed") {
+      return res.status(400).json({ message: "Food is not claimed yet" });
+    }
 
     food.status = "collected";
     food.collectedAt = new Date();
@@ -208,6 +239,24 @@ export const markCollected = async (req, res) => {
     io.emit("foodCollected", { foodId });
 
     res.json({ success: true, message: "Food marked as collected" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getClaimedFoodsByNGO = async (req, res) => {
+  try {
+    const ngoId = req.user._id;
+
+    const foods = await FoodPost.find({
+      claimedBy: ngoId,
+      status: "claimed",
+    }).populate("restaurantId", "name address");
+
+    res.status(200).json({
+      success: true,
+      data: foods,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -3,7 +3,7 @@ import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
 import { verifyRestaurantOwnership } from "../middlewares/foodMiddleware.js";
 import upload from "../middlewares/upload.js";
 import { createFood, getAllFood, claimFood, getNearbyFoods, markCollected, getFoodPostsByRestaurant, getClaimedFoodsByNGO} from "../controllers/foodController.js";
-import cloudinary from "../utils/cloudinary.js";
+import cloudinary from "../config/cloudinary.js";
 import { getIO } from "../socket/socketHandler.js";
 
 const router = express.Router();

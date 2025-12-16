@@ -5,27 +5,52 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import foodRoutes from "./routes/foodRoutes.js";
 
-// Create an express app
 const app = express();
 
-// Middleware setup
+// parsers
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(cors({
-    origin : process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials : true,
-}));
+// CORS
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://sunny-klepon-9a1d70.netlify.app",
+];
 
-app.use(express.urlencoded({ extended: true }));
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
 
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".netlify.app")
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+  ],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/food", foodRoutes);
 
-// Throw a response 
-app.get('/', (req, res) => {
-    res.send("ResQFood app is live !");
+// health
+app.get("/", (req, res) => {
+  res.send("ResQFood app is live!");
 });
 
 export default app;

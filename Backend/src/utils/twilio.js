@@ -2,7 +2,7 @@ import Twilio from "twilio";
 
 const client = Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const normalizePhone = (phone) => {
-  phone.startsWith("+") ? phone : `+91${phone}`;
+  return phone.startsWith("+") ? phone : `+91${phone}`;
 }
 
 export const sendSMS = async (to, body) => {

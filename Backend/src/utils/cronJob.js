@@ -30,9 +30,11 @@ cron.schedule("*/2 * * * *", async () => {
     } catch (e) {
       console.warn("Socket not ready for cron emit");
     }
-    io?.emit("food_expired", {
-      ids: expiredPosts.map(p => p._id.toString()),
-    });
+    if (io) {
+      io?.emit("food_expired", {
+        ids: expiredPosts.map(p => p._id.toString()),
+      });
+    }
 
   } catch (error) {
     console.error("Cron error:", error);

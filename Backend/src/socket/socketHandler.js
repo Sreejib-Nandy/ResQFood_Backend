@@ -16,14 +16,11 @@ export const initSocket = (io) => {
 
     if (role === "restaurant") {
       socket.join(userId.toString());
-      console.log(`User ${userId} joined room`);
     }
 
     if (role === "ngo") {
       socket.join(userId.toString());
-      console.log(`User ${userId} joined room`);
     }
-
 
     socket.on("disconnect", (reason) => {
       console.log(`Socket disconnected: ${socket.id}, reason: ${reason}`);

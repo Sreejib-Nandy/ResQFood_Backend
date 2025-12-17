@@ -69,6 +69,7 @@ router.put(
       } catch (e) {
         console.warn("Socket not initialized yet");
       }
+      if(io) {
       io?.emit("post_updated", {
         _id: post._id,
         food_name: post.food_name,
@@ -79,6 +80,7 @@ router.put(
         food_image: post.food_image,
         restaurantId: post.restaurantId,
       });
+    }
 
       res.json({
         success: true,

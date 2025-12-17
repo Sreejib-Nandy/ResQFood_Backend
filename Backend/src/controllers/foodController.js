@@ -81,16 +81,18 @@ export const createFood = async (req, res) => {
     } catch (e) {
       console.warn("Socket not initialized yet");
     }
-    io?.emit("new_food_post", {
-      _id: post._id,
-      food_name: post.food_name,
-      quantity: post.quantity,
-      description: post.description,
-      expiry_time: post.expiry_time,
-      location: post.location,
-      food_image: post.food_image,
-      restaurantId: post.restaurantId,
-    });
+    if (io) {
+      io?.emit("new_food_post", {
+        _id: post._id,
+        food_name: post.food_name,
+        quantity: post.quantity,
+        description: post.description,
+        expiry_time: post.expiry_time,
+        location: post.location,
+        food_image: post.food_image,
+        restaurantId: post.restaurantId,
+      });
+    }
 
     res.status(200).json({ success: true, message: "Notification sent", post });
   } catch (error) {
@@ -185,13 +187,21 @@ export const claimFood = async (req, res) => {
     } catch (e) {
       console.warn("Socket not initialized yet");
     }
-    io.to(post.restaurantId.toString()).emit("food_claimed_owner", {
-      foodId: post._id,
-    });
+    if (io) {
+      io.to(restaurant._id.toString()).emit(
+        "food_claimed_owner",
+        { foodId: post._id }
+      );
 
-    io.emit("food_unavailable", {
-      foodId: post._id,
-    });
+      io.to(ngo._id.toString()).emit(
+        "food_claimed_ngo",
+        { foodId: post._id }
+      );
+
+      io.emit("food_unavailable", {
+        foodId: post._id,
+      });
+    }
 
     res.json({ success: true, post });
   } catch (error) {
@@ -234,7 +244,7 @@ export const getNearbyFoods = async (req, res) => {
 export const markCollected = async (req, res) => {
   try {
     const { id: foodId } = req.params;
-    const ngoId = req.user.id;
+    const ngoId = req.user._id;
     const food = await FoodPost.findById(foodId);
     if (!food) return res.status(404).json({ success: false, message: "Food not found" });
     const restaurant = await User.findById(food.restaurantId);
@@ -266,13 +276,21 @@ export const markCollected = async (req, res) => {
     } catch (e) {
       console.warn("Socket not initialized yet");
     }
-    io.to(food.restaurantId.toString()).emit("food_collected_owner", {
-      foodId
-    });
+    if (io) {
+      io.to(restaurant._id.toString()).emit(
+        "food_collected_owner",
+        { foodId: food._id }
+      );
 
-    io.emit("food_unavailable", {
-      foodId: food._id,
-    });
+      io.to(ngoId.toString()).emit(
+        "food_collected_ngo",
+        { foodId: food._id }
+      );
+
+      io.emit("food_unavailable", {
+        foodId: food._id,
+      });
+    }
 
     res.json({ success: true, message: "Food marked as collected" });
   } catch (error) {

@@ -2,7 +2,7 @@ import express from "express";
 import { protect, authorizeRoles } from "../middlewares/authMiddleware.js";
 import { verifyRestaurantOwnership } from "../middlewares/foodMiddleware.js";
 import upload from "../middlewares/upload.js";
-import { createFood, getAllFood, claimFood, getNearbyFoods, markCollected, getFoodPostsByRestaurant, getClaimedFoodsByNGO} from "../controllers/foodController.js";
+import { createFood, getAllFood, claimFood, getNearbyFoods, markCollected, getFoodPostsByRestaurant, getClaimedFoodsByNGO } from "../controllers/foodController.js";
 import cloudinary from "../config/cloudinary.js";
 import { getIO } from "../socket/socketHandler.js";
 
@@ -12,10 +12,10 @@ router.get("/", getAllFood);
 router.get("/restaurant/:restaurantId", protect, getFoodPostsByRestaurant);
 router.get("/nearby", protect, getNearbyFoods); // requires coordinates in query or user profile
 // Create food post
-router.post("/createfood", upload.single("food_image"),protect, authorizeRoles("restaurant"), createFood);
+router.post("/createfood", upload.single("food_image"), protect, authorizeRoles("restaurant"), createFood);
 // Claimed food post
 router.patch("/:id/claim", protect, authorizeRoles("ngo"), claimFood);
-router.get("/claimed",protect,authorizeRoles("ngo"),getClaimedFoodsByNGO);
+router.get("/claimed", protect, authorizeRoles("ngo"), getClaimedFoodsByNGO);
 // Collected food 
 router.patch("/:id/collected", protect, authorizeRoles("ngo"), markCollected);
 
@@ -63,7 +63,22 @@ router.put(
 
       await req.food.save();
 
-      getIO()?.emit("post_updated", req.food);
+      let io;
+      try {
+        io = getIO();
+      } catch (e) {
+        console.warn("Socket not initialized yet");
+      }
+      io?.emit("post_updated", {
+        _id: post._id,
+        food_name: post.food_name,
+        quantity: post.quantity,
+        description: post.description,
+        expiry_time: post.expiry_time,
+        location: post.location,
+        food_image: post.food_image,
+        restaurantId: post.restaurantId,
+      });
 
       res.json({
         success: true,
@@ -84,14 +99,24 @@ router.put(
 
 // Delete food post
 router.delete("/food/:id", protect, verifyRestaurantOwnership, async (req, res) => {
-  const foodId = req.food._id;
-  await req.food.deleteOne();
+  try {
+    const foodId = req.food._id;
+    await req.food.deleteOne();
 
-  const io = getIO();
-  io?.emit("post_deleted", foodId);
+    let io;
+      try {
+        io = getIO();
+      } catch (e) {
+        console.warn("Socket not initialized yet");
+      }
+    io?.emit("post_deleted", {
+      foodId: foodId.toString(),
+    });
 
-  res.json({ success: true, message: "Food post deleted" });
+    res.json({ success: true, message: "Food post deleted" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
-
 
 export default router;

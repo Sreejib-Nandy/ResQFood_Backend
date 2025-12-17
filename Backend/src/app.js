@@ -1,22 +1,17 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import foodRoutes from "./routes/foodRoutes.js";
 
 const app = express();
 
-// parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// CORS
 const allowedOrigins = [
+  process.env.FRONTEND_URL,
   "http://localhost:5173",
-  "https://sunny-klepon-9a1d70.netlify.app",
-];
+].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -42,14 +37,17 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/food", foodRoutes);
 
-// health
+
 app.get("/", (req, res) => {
-  res.send("ResQFood app is live!");
+  res.send("ResQFood backend is live");
 });
 
 export default app;

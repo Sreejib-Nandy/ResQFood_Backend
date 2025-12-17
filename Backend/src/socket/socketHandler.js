@@ -6,23 +6,30 @@ export const initSocket = (io) => {
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    const userId = socket.handshake.auth?.userId;
-    const role = socket.handshake.auth?.role;
+    const { userId, role } = socket.handshake.auth || {};
 
-    if (userId) {
-      socket.join(userId);
-      console.log(`User ${userId} joined private room`);
+    if (!userId) {
+      console.log("Socket rejected: no userId");
+      socket.disconnect(true);
+      return;
     }
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected:", socket.id);
+    socket.join(userId);
+    console.log(`User ${userId} joined room`);
+
+    socket.on("disconnect", (reason) => {
+      console.log(`Socket disconnected: ${socket.id}, reason: ${reason}`);
+    });
+
+    socket.on("error", (err) => {
+      console.error("Socket error:", err);
     });
   });
 };
 
 export const getIO = () => {
   if (!ioInstance) {
-    throw new Error("Socket.io not initialized!");
+    throw new Error("Socket.io not initialized");
   }
   return ioInstance;
 };

@@ -24,7 +24,13 @@ cron.schedule("*/2 * * * *", async () => {
 
     console.log("Auto-expired posts:", expiredPosts.length);
 
-    getIO()?.emit("food_expired", {
+    let io;
+    try {
+      io = getIO();
+    } catch (e) {
+      console.warn("Socket not ready for cron emit");
+    }
+    io?.emit("food_expired", {
       ids: expiredPosts.map(p => p._id.toString()),
     });
 

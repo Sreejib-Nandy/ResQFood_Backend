@@ -88,7 +88,7 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
-            res.status(400).json({ success: false, message: "Fields are misssing" });
+            return res.status(400).json({ success: false, message: "Fields are misssing" });
         }
         const user = await User.findOne({ email });
         if (!user) {
@@ -122,7 +122,7 @@ export const logout = (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        path: "/", //  REQUIRED
+        path: "/",
     });
 
     res.json({ success: true, message: "Logged out successfully" });

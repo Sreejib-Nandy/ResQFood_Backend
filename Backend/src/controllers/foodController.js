@@ -75,8 +75,22 @@ export const createFood = async (req, res) => {
       food_image: images,
     });
 
-    const io = getIO();
-    io?.emit("new_food_post", post);
+    let io;
+    try {
+      io = getIO();
+    } catch (e) {
+      console.warn("Socket not initialized yet");
+    }
+    io?.emit("new_food_post", {
+      _id: post._id,
+      food_name: post.food_name,
+      quantity: post.quantity,
+      description: post.description,
+      expiry_time: post.expiry_time,
+      location: post.location,
+      food_image: post.food_image,
+      restaurantId: post.restaurantId,
+    });
 
     res.status(200).json({ success: true, message: "Notification sent", post });
   } catch (error) {
@@ -165,7 +179,12 @@ export const claimFood = async (req, res) => {
       );
     }
 
-    const io = getIO();
+    let io;
+    try {
+      io = getIO();
+    } catch (e) {
+      console.warn("Socket not initialized yet");
+    }
     io.to(post.restaurantId.toString()).emit("food_claimed_owner", {
       foodId: post._id,
     });
@@ -241,7 +260,12 @@ export const markCollected = async (req, res) => {
       );
     }
 
-    const io = getIO();
+    let io;
+    try {
+      io = getIO();
+    } catch (e) {
+      console.warn("Socket not initialized yet");
+    }
     io.to(food.restaurantId.toString()).emit("food_collected_owner", {
       foodId
     });

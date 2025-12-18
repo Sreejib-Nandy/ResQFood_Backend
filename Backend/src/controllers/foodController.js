@@ -7,8 +7,9 @@ import { getIO } from "../socket/socketHandler.js";
  *   We prefer to require location coordinates in body for accuracy; but if you send address, backend can geocode.
  */
 import axios from "axios";
-import { sendSMS } from "../utils/twilio.js";
 import User from "../models/User.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { foodClaimedOwnerTemplate, foodClaimedNgoTemplate, foodCollectedNgoTemplate, foodCollectedOwnerTemplate } from "../utils/emailTemplates.js";
 
 const geocodeAddress = async (address) => {
   if (!address) return null;
@@ -150,35 +151,26 @@ export const claimFood = async (req, res) => {
     post.claimedAt = new Date();
     await post.save();
 
-    // Send SMS to restaurant
+    // Send Email to restaurant
     const restaurant = await User.findById(post.restaurantId);
     const ngo = await User.findById(req.user._id);
-    if (restaurant?.contactInfo) {
-      sendSMS(
-        restaurant.contactInfo,
-        `🌱 Great news! Your food donation "${post.food_name}" (Quantity: ${post.quantity}) has been claimed by ${req.user.name} from ${req.user.organization || "an NGO"}.\n\n` +
-        `Thank you for helping reduce food waste and support people in need. Your generosity is making a difference! 🍽️`
-      );
-    }
-    if (ngo?.contactInfo) {
-      sendSMS(
-        ngo.contactInfo,
-        `🍽️ Food Claimed Successfully!
-
-        Food: "${post.food_name}"
-        Quantity: "${post.quantity}"
-
-        Expiry time:
-        ${new Date(post.expiry_time).toLocaleString()}
-
-        Location:
-        https://www.google.com/maps?q=${post.location.coordinates[1]},${post.location.coordinates[0]}
-
-        Restaurant: ${restaurant.name}
-
-        Please collect the food before it expires.
-        Thank you for helping reduce food waste and fight hunger 💚`
-      );
+    try {
+      if (restaurant?.email) {
+        await sendEmail({
+          to: restaurant.email,
+          subject: "🌱 Your food donation was claimed",
+          html: foodClaimedOwnerTemplate({ food: post, ngo, restaurant }),
+        });
+      }
+      if (ngo?.email) {
+        await sendEmail({
+          to: ngo.email,
+          subject: "🍽 Food Claimed Successfully",
+          html: foodClaimedNgoTemplate({ food: post, restaurant }),
+        });
+      }
+    } catch (error) {
+      console.error("Email sending failed:", error.message);
     }
 
     let io;
@@ -188,12 +180,12 @@ export const claimFood = async (req, res) => {
       console.warn("Socket not initialized yet");
     }
     if (io) {
-      io.to(restaurant._id.toString()).emit(
+      io.to(`restaurant:${restaurant._id}`).emit(
         "food_claimed_owner",
         { foodId: post._id }
       );
 
-      io.to(ngo._id.toString()).emit(
+      io.to(`ngo:${ngo._id}`).emit(
         "food_claimed_ngo",
         { foodId: post._id }
       );
@@ -262,14 +254,31 @@ export const markCollected = async (req, res) => {
     food.collectedAt = new Date();
     await food.save();
 
-    // Send SMS to NGO
+    // Send Email to NGO
     const ngo = await User.findById(ngoId);
-    if (ngo?.contactInfo) {
-      sendSMS(
-        ngo.contactInfo,
-        `🌟 Thank you, ${ngo.name}! You have successfully collected the food donation "${food.food_name}" (Quantity: ${food.quantity}) from ${restaurant.name}.\n\n` +
-        `This food will now reach people who need it the most. Your effort is helping fight hunger and reduce food waste. Keep up the amazing work! 💚`
-      );
+    try {
+      if (restaurant?.email) {
+        await sendEmail({
+          to: restaurant.email,
+          subject: "✅ Your food donation has been collected",
+          html: foodCollectedOwnerTemplate({
+            food,
+            ngo
+          }),
+        });
+      }
+      if (ngo?.email) {
+        await sendEmail({
+          to: ngo.email,
+          subject: "🌟 Food collected successfully",
+          html: foodCollectedNgoTemplate({
+            food,
+            restaurant
+          }),
+        });
+      }
+    } catch (error) {
+      console.error("Email sending failed:", error.message);
     }
 
     let io;
@@ -279,12 +288,12 @@ export const markCollected = async (req, res) => {
       console.warn("Socket not initialized yet");
     }
     if (io) {
-      io.to(restaurant._id.toString()).emit(
+      io.to(`restaurant:${restaurant._id}`).emit(
         "food_collected_owner",
         { foodId: food._id }
       );
 
-      io.to(ngoId.toString()).emit(
+      io.to(`ngo:${ngoId}`).emit(
         "food_collected_ngo",
         { foodId: food._id }
       );

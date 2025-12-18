@@ -13,8 +13,8 @@ connectDB();
 const server = http.createServer(app);
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL,   
-  "http://localhost:5173"     
+  process.env.FRONTEND_URL,
+  "http://localhost:5173"
 ].filter(Boolean);
 
 const io = new Server(server, {
@@ -23,7 +23,7 @@ const io = new Server(server, {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(null, false);
       }
     },
     methods: ["GET", "POST", "PATCH"],

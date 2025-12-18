@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import foodRoutes from "./routes/foodRoutes.js";
+import { sendEmail } from "./utils/sendEmail.js";
 
 const app = express();
 
@@ -48,6 +49,16 @@ app.use("/api/food", foodRoutes);
 
 app.get("/", (req, res) => {
   res.send("ResQFood backend is live");
+});
+
+app.get("/test-email", async (req, res) => {
+  await sendEmail({
+    to: "yourpersonalemail@gmail.com",
+    subject: "✅ ResQFood Email Test",
+    html: "<h2>Email is working perfectly 🚀</h2>",
+  });
+
+  res.send("Email sent");
 });
 
 export default app;

@@ -15,11 +15,13 @@ export const initSocket = (io) => {
     }
 
     if (role === "restaurant") {
-      socket.join(userId.toString());
+      socket.join(`restaurant:${userId}`);
+      console.log(`Restaurant joined room restaurant:${userId}`);
     }
 
     if (role === "ngo") {
-      socket.join(userId.toString());
+      socket.join(`ngo:${userId}`);
+      console.log(`NGO joined room ngo:${userId}`);
     }
 
     socket.on("disconnect", (reason) => {

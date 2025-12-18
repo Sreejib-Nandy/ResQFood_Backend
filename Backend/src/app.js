@@ -19,7 +19,7 @@ const corsOptions = {
 
     if (
       allowedOrigins.includes(origin) ||
-      origin.endsWith(".netlify.app")
+      origin.endsWith(".vercel.app")
     ) {
       return callback(null, true);
     }

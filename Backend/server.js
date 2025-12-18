@@ -5,6 +5,7 @@ dotenv.config();
 import app from "./src/app.js";
 import connectDB from "./src/config/database.js";
 import { Server } from "socket.io";
+import { initSocket } from "./src/socket/socketHandler.js";
 
 connectDB();
 
@@ -32,6 +33,7 @@ const io = new Server(server, {
   pingInterval: 25000,
 });
 
+initSocket(io);
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 

@@ -76,24 +76,18 @@ export const createFood = async (req, res) => {
       food_image: images,
     });
 
-    let io;
-    try {
-      io = getIO();
-    } catch (e) {
-      console.warn("Socket not initialized yet");
-    }
-    if (io) {
-      io?.emit("new_food_post", {
-        _id: post._id,
-        food_name: post.food_name,
-        quantity: post.quantity,
-        description: post.description,
-        expiry_time: post.expiry_time,
-        location: post.location,
-        food_image: post.food_image,
-        restaurantId: post.restaurantId,
-      });
-    }
+    const io = getIO();
+    io.emit("new_food_post", {
+      _id: post._id,
+      food_name: post.food_name,
+      quantity: post.quantity,
+      description: post.description,
+      expiry_time: post.expiry_time,
+      location: post.location,
+      food_image: post.food_image,
+      restaurantId: post.restaurantId,
+    });
+    console.log("📡 Emitted: new_food_post");
 
     res.status(200).json({ success: true, message: "Notification sent", post });
   } catch (error) {
@@ -173,13 +167,7 @@ export const claimFood = async (req, res) => {
       console.error("Email sending failed:", error.message);
     }
 
-    let io;
-    try {
-      io = getIO();
-    } catch (e) {
-      console.warn("Socket not initialized yet");
-    }
-    if (io) {
+    const io = getIO();
       io.emit("food_claimed_owner", {
         foodId: post._id,
         foodName: post.food_name,
@@ -187,19 +175,21 @@ export const claimFood = async (req, res) => {
         ngoId: ngo._id,
         restaurantId: restaurant._id,
       });
+      console.log("📡 Emitted: food_claimed_owner");
 
       io.emit("food_claimed_ngo", {
         foodId: post._id,
         foodName: post.food_name,
+        ngoId: ngo._id,
         restaurantName: restaurant.name,
         restaurantId: restaurant._id,
       });
+      console.log("📡 Emitted: food_claimed_ngo");
 
-      // already global — keep it
       io.emit("food_unavailable", {
         foodId: post._id,
       });
-    }
+      console.log("📡 Emitted: food_unavailable");
 
     res.json({ success: true, post });
   } catch (error) {
@@ -287,13 +277,7 @@ export const markCollected = async (req, res) => {
       console.error("Email sending failed:", error.message);
     }
 
-    let io;
-    try {
-      io = getIO();
-    } catch (e) {
-      console.warn("Socket not initialized yet");
-    }
-    if (io) {
+    const io = getIO();
       io.emit("food_collected_owner", {
         foodId: food._id,
         foodName: food.food_name,
@@ -301,18 +285,21 @@ export const markCollected = async (req, res) => {
         ngoId: ngo._id,
         restaurantId: restaurant._id,
       });
+      console.log("📡 Emitted: food_collected_owner");
 
       io.emit("food_collected_ngo", {
         foodId: food._id,
         foodName: food.food_name,
+        ngoId: ngo._id,
         restaurantName: restaurant.name,
         restaurantId: restaurant._id,
       });
+      console.log("📡 Emitted: food_collected_ngo");
 
       io.emit("food_unavailable", {
         foodId: food._id,
       });
-    }
+      console.log("📡 Emitted: food_unavailable");
 
     res.json({ success: true, message: "Food marked as collected" });
   } catch (error) {

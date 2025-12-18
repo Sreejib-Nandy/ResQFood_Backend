@@ -63,13 +63,8 @@ router.put(
 
       await req.food.save();
 
-      let io;
-      try {
-        io = getIO();
-      } catch (e) {
-        console.warn("Socket not initialized yet");
-      }
-      if (io) {
+
+      const io = getIO();
         io.emit("post_updated", {
           _id: req.food._id,
           food_name: req.food.food_name,
@@ -80,7 +75,6 @@ router.put(
           food_image: req.food.food_image,
           restaurantId: req.food.restaurantId,
         });
-      }
 
       res.json({
         success: true,
@@ -105,13 +99,9 @@ router.delete("/food/:id", protect, verifyRestaurantOwnership, async (req, res) 
     const foodId = req.food._id;
     await req.food.deleteOne();
 
-    let io;
-    try {
-      io = getIO();
-    } catch (e) {
-      console.warn("Socket not initialized yet");
-    }
-    io?.emit("post_deleted", {
+
+    const io = getIO();
+    io.emit("post_deleted", {
       foodId: foodId.toString(),
     });
 

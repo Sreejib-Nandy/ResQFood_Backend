@@ -180,16 +180,22 @@ export const claimFood = async (req, res) => {
       console.warn("Socket not initialized yet");
     }
     if (io) {
-      io.to(`restaurant:${restaurant._id}`).emit(
-        "food_claimed_owner",
-        { foodId: post._id }
-      );
+      io.emit("food_claimed_owner", {
+        foodId: post._id,
+        foodName: post.food_name,
+        ngoName: ngo.name,
+        ngoId: ngo._id,
+        restaurantId: restaurant._id,
+      });
 
-      io.to(`ngo:${ngo._id}`).emit(
-        "food_claimed_ngo",
-        { foodId: post._id }
-      );
+      io.emit("food_claimed_ngo", {
+        foodId: post._id,
+        foodName: post.food_name,
+        restaurantName: restaurant.name,
+        restaurantId: restaurant._id,
+      });
 
+      // already global — keep it
       io.emit("food_unavailable", {
         foodId: post._id,
       });
@@ -288,15 +294,20 @@ export const markCollected = async (req, res) => {
       console.warn("Socket not initialized yet");
     }
     if (io) {
-      io.to(`restaurant:${restaurant._id}`).emit(
-        "food_collected_owner",
-        { foodId: food._id }
-      );
+      io.emit("food_collected_owner", {
+        foodId: food._id,
+        foodName: food.food_name,
+        ngoName: ngo.name,
+        ngoId: ngo._id,
+        restaurantId: restaurant._id,
+      });
 
-      io.to(`ngo:${ngoId}`).emit(
-        "food_collected_ngo",
-        { foodId: food._id }
-      );
+      io.emit("food_collected_ngo", {
+        foodId: food._id,
+        foodName: food.food_name,
+        restaurantName: restaurant.name,
+        restaurantId: restaurant._id,
+      });
 
       io.emit("food_unavailable", {
         foodId: food._id,

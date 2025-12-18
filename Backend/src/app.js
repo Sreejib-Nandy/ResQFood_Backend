@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import foodRoutes from "./routes/foodRoutes.js";
+import { inngestHandler } from "./inngest/handler.js";
 
 const app = express();
 
@@ -44,7 +45,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/food", foodRoutes);
-
+app.use("/api/inngest", inngestHandler);
 
 app.get("/", (req, res) => {
   res.send("ResQFood backend is live");

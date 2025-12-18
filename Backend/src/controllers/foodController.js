@@ -248,6 +248,8 @@ export const markCollected = async (req, res) => {
     const food = await FoodPost.findById(foodId);
     if (!food) return res.status(404).json({ success: false, message: "Food not found" });
     const restaurant = await User.findById(food.restaurantId);
+    console.log("claimedBy:", food.claimedBy?.toString());
+    console.log("ngoId:", ngoId);
 
     if (!food.claimedBy || food.claimedBy.toString() !== ngoId)
       return res.status(403).json({ error: "Unauthorized" });

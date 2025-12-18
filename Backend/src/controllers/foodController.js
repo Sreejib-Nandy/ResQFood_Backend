@@ -243,7 +243,7 @@ export const markCollected = async (req, res) => {
     console.log("claimedBy:", food.claimedBy?.toString());
     console.log("ngoId:", ngoId);
 
-    if (!food.claimedBy || food.claimedBy.toString() !== ngoId)
+    if (!food.claimedBy || food.claimedBy.toString() !== ngoId.toString())
       return res.status(403).json({ error: "Unauthorized" });
 
     if (food.status !== "claimed") {

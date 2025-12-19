@@ -6,6 +6,7 @@ export const expireFoods = inngest.createFunction(
   { id: "expire-foods" },
   { cron: "*/2 * * * *" }, // every 2 minutes
   async () => {
+    console.log("CRON JOB TRIGGERED at", new Date().toISOString());
     const now = new Date();
 
     const expiredPosts = await FoodPost.find({

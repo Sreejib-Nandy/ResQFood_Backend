@@ -8,11 +8,20 @@ export const expireFoods = inngest.createFunction(
   async () => {
     console.log("CRON JOB TRIGGERED at", new Date().toISOString());
     const now = new Date();
+    console.log("NOW:", now.toISOString());
 
     const expiredPosts = await FoodPost.find({
       expiry_time: { $lte: now },
       status: { $in: ["available", "claimed"] },
     }).select("_id");
+
+    console.log(
+      "FOUND:",
+      expiredPosts.map(p => ({
+        id: p._id,
+        expiry: p.expiry_time,
+      }))
+    );
 
     if (!expiredPosts.length) return;
 

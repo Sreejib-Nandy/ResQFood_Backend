@@ -159,6 +159,9 @@ git push origin feature-name
 • Do not commit .env files
 ```
 
+## 📜 License
+This project is licensed under the **MIT License**.
+
 ## 👨‍💻 Author
 ### Sreejib Nandy
 #### 🔗 GitHub : https://github.com/Sreejib-Nandy

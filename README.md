@@ -1,4 +1,4 @@
-# 🍽️ ResQFood – Backend API
+# ResQFood – Backend API
 #### ResQFood is a scalable backend system built to reduce food wastage by connecting food donors (restaurants) with NGOs in real time.
 
 #### This repository contains the Node.js + Express + MongoDB backend, handling authentication, food listings, geo-based discovery, NGO coordination, and secure APIs.

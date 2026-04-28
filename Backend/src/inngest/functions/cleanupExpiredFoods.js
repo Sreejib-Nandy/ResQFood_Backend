@@ -3,7 +3,7 @@ import FoodPost from "../../models/foodPost.js";
 
 export const cleanupExpiredFoods = inngest.createFunction(
   { id: "cleanup-expired-foods-v2",
-  cron: "0 3 * * *" }, // every day at 3 AM
+  triggers: [{ cron: "0 3 * * *" }]}, // every day at 3 AM
   async () => {
     const res = await FoodPost.deleteMany({
       status: "expired",

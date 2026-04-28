@@ -3,8 +3,8 @@ import FoodPost from "../../models/foodPost.js";
 import { getIO } from "../../socket/socketHandler.js";
 
 export const expireFoods = inngest.createFunction(
-  { id: "expire-foods" },
-  { cron: "*/2 * * * *" }, // every 2 minutes
+  { id: "expire-foods",
+  cron: "*/2 * * * *" }, // every 2 minutes
   async () => {
     const now = new Date();
 
